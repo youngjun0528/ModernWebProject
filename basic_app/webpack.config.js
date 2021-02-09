@@ -1,4 +1,5 @@
 const path = require("path");
+const webpack = require("webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
@@ -7,7 +8,7 @@ const ImageminWebpack = require("image-minimizer-webpack-plugin");
 module.exports = {
   mode: "development",
   entry: {
-    inital: "./src/js/inital.js",
+    ui: "./src/js/ui.js",
     index: "./src/js/index.js",
   },
   devtool: "inline-source-map",
@@ -46,6 +47,19 @@ module.exports = {
           },
         ],
       },
+      {
+        test: /^book[0-9]\.html$/,
+        use: [
+          {
+            loader: "file-loader",
+            options: {
+              outputPath: "book",
+              name: "[name].[ext]",
+              publicPath: "book",
+            },
+          },
+        ],
+      },
     ],
   },
   plugins: [
@@ -55,7 +69,7 @@ module.exports = {
       hash: true,
       filename: "index.html",
       // excludeChunks : ['multiple'], // entry에서 해당 리스트를 제외한 나머지
-      chunks: ["inital", "index"], // entry에서 해당 리스트만 포함
+      chunks: ["index", "ui"], // entry에서 해당 리스트만 포함
       template: "./src/index.html",
     }),
     // new HtmlWebpackPlugin({
@@ -77,6 +91,10 @@ module.exports = {
       },
       // Disable `loader`
       loader: false,
+    }),
+    new webpack.ProvidePlugin({
+      $: "jquery",
+      jQuery: "jquery",
     }),
   ],
 };
