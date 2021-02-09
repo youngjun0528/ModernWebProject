@@ -48,7 +48,7 @@ module.exports = {
         ],
       },
       {
-        test: /^book[0-9]\.html$/,
+        test: /book[0-9]\.(html)$/,
         use: [
           {
             loader: "file-loader",
@@ -67,7 +67,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       title: "Index Title",
       hash: true,
-      filename: "index.html",
+      filename: "./index.html",
       // excludeChunks : ['multiple'], // entry에서 해당 리스트를 제외한 나머지
       chunks: ["index", "ui"], // entry에서 해당 리스트만 포함
       template: "./src/index.html",

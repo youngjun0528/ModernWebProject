@@ -11,7 +11,7 @@ function importAll(r) {
     require.context("../img", false, /\.(png|jpe?g|svg)$/)
   );
   
-  const book = importAll(require.context("../book", false, /^book[0-9]\.html$/));
+  const book = importAll(require.context("../book", false, /book[0-9]\.html$/));
   
   // css 파일 로드
   import "../css/reset.css";
