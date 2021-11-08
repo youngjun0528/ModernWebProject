@@ -1,0 +1,1 @@
+spring init --build maven --language java --version 2.5.2 --packaging jar --java-version 11 --groupId microservices.book --artifactId social-multiplication --name social-multiplication --description "Social Multiplication App" --package-name microservices.book.multiplication --dependencies web
