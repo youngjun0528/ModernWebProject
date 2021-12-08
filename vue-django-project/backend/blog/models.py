@@ -26,6 +26,7 @@ class Post(models.Model):
     def get_absolute_url(self):
         return reverse("blog:post_detail", args=(self.id,))
 
+    # https://docs.djangoproject.com/en/4.0/ref/models/instances/#extra-instance-methods
     def get_prev(self):
         return self.get_previous_by_modify_dt()
 

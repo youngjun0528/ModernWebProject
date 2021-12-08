@@ -5,6 +5,7 @@ module.exports = {
   devServer: {
     disableHostCheck: true,
     index: 'home.html',
+    proxy: 'http://127.0.0.1:8000' // xhr only
   },
 
   transpileDependencies: [

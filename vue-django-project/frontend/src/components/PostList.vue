@@ -28,32 +28,32 @@
                   <v-row>
                     <v-col cols="12" sm="6" md="4">
                       <v-text-field
-                        v-model="editedItem.name"
-                        label="Dessert name"
+                        v-model="editedItem.id"
+                        label="ID"
                       ></v-text-field>
                     </v-col>
                     <v-col cols="12" sm="6" md="4">
                       <v-text-field
-                        v-model="editedItem.calories"
-                        label="Calories"
+                        v-model="editedItem.title"
+                        label="Title"
                       ></v-text-field>
                     </v-col>
                     <v-col cols="12" sm="6" md="4">
                       <v-text-field
-                        v-model="editedItem.fat"
-                        label="Fat (g)"
+                        v-model="editedItem.description"
+                        label="Description"
                       ></v-text-field>
                     </v-col>
                     <v-col cols="12" sm="6" md="4">
                       <v-text-field
-                        v-model="editedItem.carbs"
-                        label="Carbs (g)"
+                        v-model="editedItem.modify_dt"
+                        label="Modified Date"
                       ></v-text-field>
                     </v-col>
                     <v-col cols="12" sm="6" md="4">
                       <v-text-field
-                        v-model="editedItem.protein"
-                        label="Protein (g)"
+                        v-model="editedItem.owner"
+                        label="Owner"
                       ></v-text-field>
                     </v-col>
                   </v-row>
@@ -93,13 +93,15 @@
         <v-icon small @click="deleteItem(item)"> mdi-delete </v-icon>
       </template>
       <template v-slot:no-data>
-        <v-btn color="primary" @click="initialize"> Reset </v-btn>
+        <v-btn color="primary" @click="fetchPostList"> Reset </v-btn>
       </template>
     </v-data-table>
   </v-container>
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   name: "HelloWorld",
 
@@ -111,29 +113,29 @@ export default {
         text: "ID",
         align: "start",
         sortable: false,
-        value: "name",
+        value: "id",
       },
-      { text: "Title", value: "calories" },
-      { text: "Summary", value: "fat" },
-      { text: "Modified Date", value: "carbs" },
-      { text: "Owner", value: "protein" },
+      { text: "Title", value: "title" },
+      { text: "Description", value: "description" },
+      { text: "Modified Date", value: "modify_dt" },
+      { text: "Owner", value: "owner" },
       { text: "Actions", value: "actions", sortable: false },
     ],
     posts: [],
     editedIndex: -1,
     editedItem: {
-      name: "",
-      calories: 0,
-      fat: 0,
-      carbs: 0,
-      protein: 0,
+      id: "",
+      title: 0,
+      description: 0,
+      modify_dt: 0,
+      owner: 0,
     },
     defaultItem: {
-      name: "",
-      calories: 0,
-      fat: 0,
-      carbs: 0,
-      protein: 0,
+      id: "",
+      title: 0,
+      description: 0,
+      modify_dt: 0,
+      owner: 0,
     },
   }),
 
@@ -153,34 +155,23 @@ export default {
   },
 
   created() {
-    this.initialize();
+    this.fetchPostList();
   },
 
   methods: {
-    initialize() {
-      this.posts = [
-        {
-          name: "Frozen Yogurt",
-          calories: 159,
-          fat: 6.0,
-          carbs: 24,
-          protein: 4.0,
-        },
-        {
-          name: "Ice cream sandwich",
-          calories: 237,
-          fat: 9.0,
-          carbs: 37,
-          protein: 4.3,
-        },
-        {
-          name: "Eclair",
-          calories: 262,
-          fat: 16.0,
-          carbs: 23,
-          protein: 6.0,
-        },
-      ];
+    fetchPostList() {
+      console.log("fetchPostList()...");
+
+      axios
+        .get("/api/post/list")
+        .then((res) => {
+          console.log("POST GET RESPONSE", res);
+          this.posts = res.data;
+        })
+        .catch((err) => {
+          console.log("POST GET ERR_RESPONSE", err.response);
+          alert(err.response.status + " " + err.response.statusText);
+        });
     },
 
     editItem(item) {
