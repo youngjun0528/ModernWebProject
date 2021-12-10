@@ -6,10 +6,16 @@
       sort-by="name"
       class="elevation-1"
       :items-per-page="5"
+      @click:row="serverPage"
     >
       <template v-slot:top>
         <v-toolbar flat>
-          <v-toolbar-title>Post List</v-toolbar-title>
+          <v-toolbar-title
+            >Post List
+            <span v-if="tagname" class="body-1 font-italic ml-3"
+              >(with {{ tagname }} tagged)</span
+            >
+          </v-toolbar-title>
           <v-divider class="mx-4" inset vertical></v-divider>
           <v-spacer></v-spacer>
           <v-dialog v-model="dialog" max-width="500px">
@@ -122,6 +128,7 @@ export default {
       { text: "Actions", value: "actions", sortable: false },
     ],
     posts: [],
+    tagname: "",
     editedIndex: -1,
     editedItem: {
       id: "",
@@ -155,23 +162,34 @@ export default {
   },
 
   created() {
+    const params = new URL(location).searchParams;
+    this.tagname = params.get("tagname");
     this.fetchPostList();
   },
 
   methods: {
     fetchPostList() {
-      console.log("fetchPostList()...");
+      console.log("fetchPostList()...", this.tagname);
+
+      let getUrl = "";
+      if (this.tagname) getUrl = `/api/post/list/?tagname=${this.tagname}`;
+      else getUrl = "/api/post/list/";
 
       axios
-        .get("/api/post/list")
+        .get(getUrl)
         .then((res) => {
-          console.log("POST GET RESPONSE", res);
+          console.log("POST LIST GET RESPONSE", res);
           this.posts = res.data;
         })
         .catch((err) => {
-          console.log("POST GET ERR_RESPONSE", err.response);
+          console.log("POST LIST GET ERR_RESPONSE", err.response);
           alert(err.response.status + " " + err.response.statusText);
         });
+    },
+
+    serverPage(item) {
+      console.log("serverPage()...", item);
+      location.href = `/blog/post/${item.id}`;
     },
 
     editItem(item) {
@@ -218,3 +236,14 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+/* .my-hover:hover {
+  cursor: pointer;
+} */
+/* deep selector */
+/* 부모 컴퍼넌트에 있는 엘리먼트 뿐만 아니라 자식 컴퍼넌트에도 동일한 클래스명이 있다면 전부 적용 */
+.v-data-table >>> tbody > tr {
+  cursor: pointer;
+}
+</style>
