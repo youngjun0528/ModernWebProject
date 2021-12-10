@@ -13,10 +13,11 @@
           <div>
             <strong>TAGS:</strong>
             <v-chip
-              class="ma-2"
+              class="ma-2 my-hover"
               outlined
               v-for="(tag, index) in post.tags"
               v-bind:key="index"
+              @click="serverPage(tag)"
             >
               {{ tag }}
             </v-chip>
@@ -46,13 +47,17 @@
         </v-card>
         <v-card class="pa-2 mb-5" tile>
           <h2>Tag Cloud</h2>
-          <v-chip class="ma-2" color="green" text-color="white">
-            <v-avatar left class="green darken-4"> 1 </v-avatar>
-            python
-          </v-chip>
-          <v-chip class="ma-2" color="green" text-color="white">
-            <v-avatar left class="green darken-4"> 3 </v-avatar>
-            django
+          <v-chip
+            v-for="(tag, index) in tagCloud"
+            @click="serverPage(tag.name)"
+            v-bind:key="index"
+            class="ma-2 my-hover"
+            :color="tag.color"
+            text-color="white"
+          >
+            <v-avatar left :class="tag.color + ' darken-4'"
+              >{{ tag.count }} </v-avatar
+            >{{ tag.name }}
           </v-chip>
         </v-card>
       </v-col>
@@ -68,6 +73,7 @@ export default {
 
   data: () => ({
     post: {},
+    tagCloud: [],
   }),
 
   created() {
@@ -79,6 +85,7 @@ export default {
     // https://v3.ko.vuejs.org/guide/conditional.html#v-if-%E1%84%83%E1%85%A2-v-show
     const postId = 2;
     this.fetchPostDetail(postId);
+    this.fetchTagCloud();
   },
 
   methods: {
@@ -94,6 +101,29 @@ export default {
           console.log("POST DETAIL GET ERR_RESPONSE", err.response);
           alert(err.response.status + " " + err.response.statusText);
         });
+    },
+    fetchTagCloud() {
+      console.log("fetchTagCloud()...");
+      axios
+        .get(`/api/tag/cloud`) // ES6 Template Literal
+        .then((res) => {
+          console.log("TAG CLOUD GET RESPONSE", res);
+          this.tagCloud = res.data;
+          // tag.weight
+          this.tagCloud.forEach((element) => {
+            if (element.weight === 3) element.color = "green";
+            else if (element.weight === 2) element.color = "blue-grey";
+            else if (element.weight === 1) element.color = "grey";
+          });
+        })
+        .catch((err) => {
+          console.log("TAG CLOUD GET ERR_RESPONSE", err.response);
+          alert(err.response.status + " " + err.response.statusText);
+        });
+    },
+    serverPage(tagName) {
+      console.log("tagName()...", tagName);
+      location.href = `/blog/post/list/?tagname=${tagname}`;
     },
   },
 };
