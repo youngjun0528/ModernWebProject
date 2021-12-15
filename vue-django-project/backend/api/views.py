@@ -2,11 +2,16 @@ from django.shortcuts import render
 
 # Create your views here.
 
-# https://ccbv.co.uk/ - ListView
+# https://ccbv.co.uk/ - ListView, LoginView
 from django.http import JsonResponse
 from django.views.generic.list import BaseListView
 from django.views.generic.detail import BaseDetailView
+from django.contrib.auth.views import LoginView
+from django.contrib.auth import login
 from django.db.models import Count
+
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from blog.models import Post
 from api.views_util import obj_to_post, prev_next_post, make_tag_cloud
@@ -78,3 +83,25 @@ class ApiTagCloudLV(BaseListView):
         #     )
         tagList = make_tag_cloud(qs)
         return JsonResponse(data=tagList, safe=False, status=200)
+
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class ApiLoginView(LoginView):
+    def form_valid(self, form):
+        """Security check complete. Log the user in."""
+        # auth_login(self.request, form.get_user())
+        # return HttpResponseRedirect(self.get_success_url())
+        user = form.get_user()
+        login(self.request, user)
+        # userDict = vars(user)
+        # del userDict['_state'], userDict['password']
+        userDict = {
+            'id': user.id,
+            'username': user.username,
+        }
+        return JsonResponse(data=userDict, safe=True, status=200)
+
+    def form_invalid(self, form):
+        """If the form is invalid, render the invalid form."""
+        # return self.render_to_response(self.get_context_data(form=form))
+        return JsonResponse(data=form.errors, safe=True, status=400)

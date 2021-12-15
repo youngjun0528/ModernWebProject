@@ -20,6 +20,9 @@ class Post(models.Model):
     owner = models.ForeignKey(get_user_model(
     ), on_delete=models.CASCADE, verbose_name='OWNER', blank=True, null=True)
 
+    class Meta:
+        ordering = ["modify_dt"]
+
     def __str__(self):
         return self.title
 
