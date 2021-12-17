@@ -4,16 +4,20 @@ from django.shortcuts import render
 
 # https://ccbv.co.uk/ - ListView, LoginView
 from django.http import JsonResponse
+from django.views.generic import View
 from django.views.generic.list import BaseListView
 from django.views.generic.detail import BaseDetailView
-from django.contrib.auth.views import LoginView
-from django.contrib.auth import login
+from django.views.generic.edit import BaseCreateView
+from django.views.decorators.cache import never_cache
+
+from django.contrib.auth import login, logout, get_user_model, update_session_auth_hash, get_user
+from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeView
 from django.db.models import Count
 
 from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import ensure_csrf_cookie
 
 from blog.models import Post
+from accounts.forms import MyUserCreationForm
 from api.views_util import obj_to_post, prev_next_post, make_tag_cloud
 
 from taggit.models import Tag
@@ -85,7 +89,6 @@ class ApiTagCloudLV(BaseListView):
         return JsonResponse(data=tagList, safe=False, status=200)
 
 
-@method_decorator(ensure_csrf_cookie, name='dispatch')
 class ApiLoginView(LoginView):
     def form_valid(self, form):
         """Security check complete. Log the user in."""
@@ -105,3 +108,70 @@ class ApiLoginView(LoginView):
         """If the form is invalid, render the invalid form."""
         # return self.render_to_response(self.get_context_data(form=form))
         return JsonResponse(data=form.errors, safe=True, status=400)
+
+
+class ApiRegisterView(BaseCreateView):
+    # 아래에 있는 Model 정보는 이미 가입된 사용자 정보를 가지고 있다. (username, password)
+    # 하지만 신규 가입자는 username, password1, password2 와 같이 다른 Form 정보를 가지고 있기 때문에 변경이 필요한다.
+    # model = get_user_model()
+    # fields = '__all__'
+    # from django.contrib.auth.forms import UserCreationForm Override
+    form_class = MyUserCreationForm
+
+    def form_valid(self, form):
+        """If the form is valid, save the associated model."""
+        self.object = form.save()
+        userDict = {
+            'id': self.object.id,
+            'username': self.object.username,
+        }
+        # return super().form_valid(form)
+        return JsonResponse(data=userDict, safe=True, status=201)
+
+    def form_invalid(self, form):
+        """If the form is invalid, render the invalid form."""
+        # return self.render_to_response(self.get_context_data(form=form))
+        return JsonResponse(data=form.errors, safe=True, status=400)
+
+
+class ApiLogoutView(LogoutView):
+    @method_decorator(never_cache)
+    def dispatch(self, request, *args, **kwargs):
+        logout(request)
+        # next_page = self.get_next_page()
+        # if next_page:
+        #     # Redirect to this page until the session has been cleared.
+        #     return HttpResponseRedirect(next_page)
+        # return super().dispatch(request, *args, **kwargs)
+        return JsonResponse(data={}, safe=True, status=200)
+
+
+class ApiPwdChgView(PasswordChangeView):
+    def form_valid(self, form):
+        form.save()
+        # Updating the password logs out all other sessions for the user
+        # except the current one.
+        update_session_auth_hash(self.request, form.user)
+        # return super().form_valid(form)
+        print("success")
+        return JsonResponse(data={}, safe=True, status=200)
+
+    def form_invalid(self, form):
+        """If the form is invalid, render the invalid form."""
+        # return self.render_to_response(self.get_context_data(form=form))
+        return JsonResponse(data=form.errors, safe=True, status=400)
+
+
+class ApiMeView(View):
+    def get(self, request, *args, **kwargs):
+        user = get_user(request)
+        if user.is_authenticated:
+            userDict = {
+                'id': user.id,
+                'username': user.username
+            }
+        else:
+            userDict = {
+                'username': 'Anonymous',
+            }
+        return JsonResponse(data=userDict, safe=True, status=200)
