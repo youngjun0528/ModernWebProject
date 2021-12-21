@@ -73,7 +73,7 @@
           <v-spacer></v-spacer>
         </v-toolbar>
         <v-card-text>
-          <v-form id="login-form" ref="loginform">
+          <v-form id="login-form" ref="loginForm">
             <v-text-field
               label="Username"
               name="username"
@@ -107,7 +107,7 @@
           <v-spacer></v-spacer>
         </v-toolbar>
         <v-card-text>
-          <v-form id="register-form" ref="registerform">
+          <v-form id="register-form" ref="registerForm">
             <v-text-field
               label="Username"
               name="username"
@@ -147,7 +147,7 @@
           <v-spacer></v-spacer>
         </v-toolbar>
         <v-card-text>
-          <v-form id="pwdchg-form" ref="pwdchgform">
+          <v-form id="pwdchg-form" ref="pwdchgForm">
             <v-text-field
               label="Old Password"
               name="old_password"
@@ -216,13 +216,13 @@ export default {
       console.log("cancel()...", kind);
       if (kind == "login") {
         this.dialog.login = false;
-        this.$refs.loginform.reset();
+        this.$refs.loginForm.reset();
       } else if (kind == "register") {
         this.dialog.register = false;
-        this.$refs.registerform.reset();
+        this.$refs.registerForm.reset();
       } else if (kind == "pwdchg") {
         this.dialog.pwdchg = false;
-        this.$refs.pwdchgform.reset();
+        this.$refs.pwdchgForm.reset();
       }
     },
 
@@ -231,15 +231,15 @@ export default {
       if (kind == "login") {
         this.login();
         this.dialog.login = false;
-        this.$refs.loginform.reset();
+        this.$refs.loginForm.reset();
       } else if (kind == "register") {
         this.register();
         this.dialog.register = false;
-        this.$refs.registerform.reset();
+        this.$refs.registerForm.reset();
       } else if (kind == "pwdchg") {
         this.pwdchg();
         this.dialog.pwdchg = false;
-        this.$refs.pwdchgform.reset();
+        this.$refs.pwdchgForm.reset();
       }
     },
 

@@ -18,90 +18,76 @@
           </v-toolbar-title>
           <v-divider class="mx-4" inset vertical></v-divider>
           <v-spacer></v-spacer>
-          <v-dialog v-model="dialog" max-width="500px">
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn color="primary" dark class="mb-2" v-bind="attrs" v-on="on">
-                New Post
-              </v-btn>
-            </template>
-            <v-card>
-              <v-card-title>
-                <span class="text-h5">{{ formTitle }}</span>
-              </v-card-title>
-
-              <v-card-text>
-                <v-container>
-                  <v-row>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field
-                        v-model="editedItem.id"
-                        label="ID"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field
-                        v-model="editedItem.title"
-                        label="Title"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field
-                        v-model="editedItem.description"
-                        label="Description"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field
-                        v-model="editedItem.modify_dt"
-                        label="Modified Date"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field
-                        v-model="editedItem.owner"
-                        label="Owner"
-                      ></v-text-field>
-                    </v-col>
-                  </v-row>
-                </v-container>
-              </v-card-text>
-
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn color="blue darken-1" text @click="close">
-                  Cancel
-                </v-btn>
-                <v-btn color="blue darken-1" text @click="save"> Save </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
-          <v-dialog v-model="dialogDelete" max-width="500px">
-            <v-card>
-              <v-card-title class="text-h5"
-                >Are you sure you want to delete this item?</v-card-title
-              >
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn color="blue darken-1" text @click="closeDelete"
-                  >Cancel</v-btn
-                >
-                <v-btn color="blue darken-1" text @click="deleteItemConfirm"
-                  >OK</v-btn
-                >
-                <v-spacer></v-spacer>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
+          <v-btn
+            color="primary"
+            dark
+            class="mb-2"
+            @click.stop="dialogOpen('create')"
+          >
+            New Post
+          </v-btn>
         </v-toolbar>
       </template>
       <template v-slot:[`item.actions`]="{ item }">
-        <v-icon small class="mr-2" @click="editItem(item)"> mdi-pencil </v-icon>
+        <v-icon small class="mr-2" @click.stop="dialogOpen('update', item)">
+          mdi-pencil
+        </v-icon>
         <v-icon small @click="deleteItem(item)"> mdi-delete </v-icon>
       </template>
       <template v-slot:no-data>
         <v-btn color="primary" @click="fetchPostList"> Reset </v-btn>
       </template>
     </v-data-table>
+    <v-dialog v-model="dialog" max-width="800px">
+      <v-card>
+        <v-card-title>
+          <span class="text-h5">{{ formTitle }}</span>
+        </v-card-title>
+
+        <v-card-text>
+          <v-form id="post-form" ref="postForm">
+            <v-text-field
+              label="ID"
+              name="id"
+              :value="editedItem.id"
+              readonly
+            ></v-text-field>
+            <v-text-field
+              label="TITLE"
+              name="title"
+              :value="editedItem.title"
+            ></v-text-field>
+            <v-text-field
+              label="DESCRIPTION"
+              name="description"
+              :value="editedItem.description"
+            ></v-text-field>
+            <v-textarea
+              label="CONTENT"
+              name="content"
+              :value="editedItem.content"
+            ></v-textarea>
+            <v-text-field
+              label="OWNER"
+              name="owner"
+              :value="editedItem.owner"
+              readonly
+            ></v-text-field>
+            <v-text-field
+              label="TAGS"
+              name="tags"
+              :value="editedItem.tags"
+            ></v-text-field>
+          </v-form>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue darken-1" text @click="cancel"> Cancel </v-btn>
+          <v-btn color="blue darken-1" text @click="save"> Save </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -109,7 +95,7 @@
 import axios from "axios";
 
 export default {
-  name: "HelloWorld",
+  name: "PostList",
 
   data: () => ({
     dialog: false,
@@ -132,34 +118,39 @@ export default {
     editedIndex: -1,
     editedItem: {
       id: "",
-      title: 0,
-      description: 0,
-      modify_dt: 0,
-      owner: 0,
+      title: "",
+      description: "",
+      content: "",
+      owner: "",
+      tags: "",
     },
     defaultItem: {
       id: "",
-      title: 0,
-      description: 0,
-      modify_dt: 0,
-      owner: 0,
+      title: "",
+      description: "",
+      content: "",
+      owner: "",
+      tags: "",
     },
+    actionKind: "",
   }),
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "New Item" : "Edit Item";
+      // return this.editedIndex === -1 ? "Create Item" : "Update Item";
+      if (this.actionKind === "create") return "Create Item";
+      else return "Update Item";
     },
   },
 
-  watch: {
-    dialog(val) {
-      val || this.close();
-    },
-    dialogDelete(val) {
-      val || this.closeDelete();
-    },
-  },
+  // watch: {
+  //   dialog(val) {
+  //     val || this.close();
+  //   },
+  //   dialogDelete(val) {
+  //     val || this.closeDelete();
+  //   },
+  // },
 
   created() {
     const params = new URL(location).searchParams;
@@ -192,47 +183,70 @@ export default {
       location.href = `/blog/post/${item.id}`;
     },
 
-    editItem(item) {
-      this.editedIndex = this.posts.indexOf(item);
-      this.editedItem = Object.assign({}, item);
+    dialogOpen(actionKind, item) {
+      console.log("dialogOpen()...", actionKind);
+      this.actionKind = actionKind;
+      if (actionKind === "create") {
+        this.editedIndex = -1;
+        this.editedItem = "";
+      } else {
+        this.editedIndex = this.posts.indexOf(item);
+        this.editedItem = Object.assign({}, item); // shallow copy(merge) / deep copy
+      }
       this.dialog = true;
     },
 
-    deleteItem(item) {
-      this.editedIndex = this.posts.indexOf(item);
-      this.editedItem = Object.assign({}, item);
-      this.dialogDelete = true;
-    },
-
-    deleteItemConfirm() {
-      this.posts.splice(this.editedIndex, 1);
-      this.closeDelete();
-    },
-
-    close() {
+    cancel() {
+      console.log("cancel()...");
       this.dialog = false;
-      this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem);
-        this.editedIndex = -1;
-      });
-    },
-
-    closeDelete() {
-      this.dialogDelete = false;
-      this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem);
-        this.editedIndex = -1;
-      });
     },
 
     save() {
-      if (this.editedIndex > -1) {
-        Object.assign(this.posts[this.editedIndex], this.editedItem);
-      } else {
-        this.posts.push(this.editedItem);
-      }
-      this.close();
+      console.log("save()...");
+      this.dialog = false;
     },
+
+    // editItem(item) {
+    //   this.editedIndex = this.posts.indexOf(item);
+    //   this.editedItem = Object.assign({}, item);
+    //   this.dialog = true;
+    // },
+
+    // deleteItem(item) {
+    //   this.editedIndex = this.posts.indexOf(item);
+    //   this.editedItem = Object.assign({}, item);
+    //   this.dialogDelete = true;
+    // },
+
+    // deleteItemConfirm() {
+    //   this.posts.splice(this.editedIndex, 1);
+    //   this.closeDelete();
+    // },
+
+    // close() {
+    //   this.dialog = false;
+    //   this.$nextTick(() => {
+    //     this.editedItem = Object.assign({}, this.defaultItem);
+    //     this.editedIndex = -1;
+    //   });
+    // },
+
+    // closeDelete() {
+    //   this.dialogDelete = false;
+    //   this.$nextTick(() => {
+    //     this.editedItem = Object.assign({}, this.defaultItem);
+    //     this.editedIndex = -1;
+    //   });
+    // },
+
+    // save() {
+    //   if (this.editedIndex > -1) {
+    //     Object.assign(this.posts[this.editedIndex], this.editedItem);
+    //   } else {
+    //     this.posts.push(this.editedItem);
+    //   }
+    //   this.close();
+    // },
   },
 };
 </script>
