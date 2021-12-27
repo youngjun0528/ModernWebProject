@@ -20,8 +20,8 @@ def obj_to_post(obj):
 
     post['modify_dt'] = obj.modify_dt.strftime(
         '%Y-%m-%d %H:%M') if obj.modify_dt else ''
-    post['tags'] = [tag.name for tag in obj.tags.all()] if obj.modify_dt else ''
-    post['owner'] = obj.owner.username if obj.modify_dt else 'Anonymous'
+    post['tags'] = [tag.name for tag in obj.tags.all()] if obj.tags else ''
+    post['owner'] = obj.owner.username if obj.owner else 'Anonymous'
 
     # python object state id
     del post['_state']

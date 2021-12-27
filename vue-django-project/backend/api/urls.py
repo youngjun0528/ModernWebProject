@@ -16,4 +16,8 @@ urlpatterns = [
 
     path('me/', views.ApiMeView.as_view(), name='me'),
 
+    path('post/create/', views.ApiPostCV.as_view(), name='post_create'),
+    path('post/<int:pk>/update/', views.ApiPostUV.as_view(), name='post_update'),
+    path('post/<int:pk>/delete/', views.ApiPostDelV.as_view(), name='post_delete'),
+
 ]

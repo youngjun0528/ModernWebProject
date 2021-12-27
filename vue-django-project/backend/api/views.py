@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.views.generic import View
 from django.views.generic.list import BaseListView
 from django.views.generic.detail import BaseDetailView
-from django.views.generic.edit import BaseCreateView
+from django.views.generic.edit import BaseCreateView, BaseUpdateView, BaseDeleteView
 from django.views.decorators.cache import never_cache
 
 from django.contrib.auth import login, logout, get_user_model, update_session_auth_hash, get_user
@@ -18,6 +18,7 @@ from django.utils.decorators import method_decorator
 
 from blog.models import Post
 from accounts.forms import MyUserCreationForm
+from accounts.views import MyLoginRequiredMixin, OwnerOnlyMixin
 from api.views_util import obj_to_post, prev_next_post, make_tag_cloud
 
 from taggit.models import Tag
@@ -153,7 +154,6 @@ class ApiPwdChgView(PasswordChangeView):
         # except the current one.
         update_session_auth_hash(self.request, form.user)
         # return super().form_valid(form)
-        print("success")
         return JsonResponse(data={}, safe=True, status=200)
 
     def form_invalid(self, form):
@@ -175,3 +175,49 @@ class ApiMeView(View):
                 'username': 'Anonymous',
             }
         return JsonResponse(data=userDict, safe=True, status=200)
+
+
+class ApiPostCV(MyLoginRequiredMixin, BaseCreateView):
+    model = Post
+    fields = '__all__'
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        self.object = form.save()
+        post = obj_to_post(self.object)
+        return JsonResponse(data=post, safe=True, status=201)
+
+    def form_invalid(self, form):
+        """If the form is invalid, render the invalid form."""
+        # return self.render_to_response(self.get_context_data(form=form))
+        return JsonResponse(data=form.errors, safe=True, status=400)
+
+
+class ApiPostUV(OwnerOnlyMixin, BaseUpdateView):
+    model = Post
+    fields = '__all__'
+
+    def form_valid(self, form):
+        self.object = form.save()
+        post = obj_to_post(self.object)
+        return JsonResponse(data=post, safe=True, status=200)
+
+    def form_invalid(self, form):
+        """If the form is invalid, render the invalid form."""
+        # return self.render_to_response(self.get_context_data(form=form))
+        return JsonResponse(data=form.errors, safe=True, status=400)
+
+
+class ApiPostDelV(OwnerOnlyMixin, BaseDeleteView):
+    model = Post
+
+    def delete(self, request, *args, **kwargs):
+        """
+        Call the delete() method on the fetched object and then redirect to the
+        success URL.
+        """
+        self.object = self.get_object()
+        # success_url = self.get_success_url()
+        self.object.delete()
+        # return HttpResponseRedirect(success_url)
+        return JsonResponse(data={}, safe=True, status=204)

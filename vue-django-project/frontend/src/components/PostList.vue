@@ -32,7 +32,7 @@
         <v-icon small class="mr-2" @click.stop="dialogOpen('update', item)">
           mdi-pencil
         </v-icon>
-        <v-icon small @click="deleteItem(item)"> mdi-delete </v-icon>
+        <v-icon small @click.stop="deletePost(item)"> mdi-delete </v-icon>
       </template>
       <template v-slot:no-data>
         <v-btn color="primary" @click="fetchPostList"> Reset </v-btn>
@@ -49,34 +49,35 @@
             <v-text-field
               label="ID"
               name="id"
-              :value="editedItem.id"
+              v-model="editedItem.id"
               readonly
             ></v-text-field>
             <v-text-field
               label="TITLE"
               name="title"
-              :value="editedItem.title"
+              v-model="editedItem.title"
             ></v-text-field>
             <v-text-field
               label="DESCRIPTION"
               name="description"
-              :value="editedItem.description"
+              v-model="editedItem.description"
             ></v-text-field>
             <v-textarea
+              outlined
               label="CONTENT"
               name="content"
-              :value="editedItem.content"
+              v-model="editedItem.content"
             ></v-textarea>
             <v-text-field
               label="OWNER"
               name="owner"
-              :value="editedItem.owner"
+              v-model="editedItem.owner"
               readonly
             ></v-text-field>
             <v-text-field
               label="TAGS"
               name="tags"
-              :value="editedItem.tags"
+              v-model="editedItem.tags"
             ></v-text-field>
           </v-form>
         </v-card-text>
@@ -93,9 +94,16 @@
 
 <script>
 import axios from "axios";
+import EventBus from "./event_bus";
 
 export default {
   name: "PostList",
+
+  /** 컴포넌트 간 통신 방법
+   * 1. Props down, event up : 부모 자식 컴포넌트 관계인 경우
+   * 2. EventBus : 공유 데이터가 간단한 경우
+   * 3. Vuex : 공유 데이터 규모가 큰 경우
+   */
 
   data: () => ({
     dialog: false,
@@ -117,21 +125,21 @@ export default {
     tagname: "",
     editedIndex: -1,
     editedItem: {
-      id: "",
-      title: "",
-      description: "",
-      content: "",
-      owner: "",
-      tags: "",
+      // id: "",
+      // title: "",
+      // description: "",
+      // content: "",
+      // owner: "",
+      // tags: "",
     },
-    defaultItem: {
-      id: "",
-      title: "",
-      description: "",
-      content: "",
-      owner: "",
-      tags: "",
-    },
+    // defaultItem: {
+    //   id: "",
+    //   title: "",
+    //   description: "",
+    //   content: "",
+    //   owner: "",
+    //   tags: "",
+    // },
     actionKind: "",
   }),
 
@@ -156,6 +164,11 @@ export default {
     const params = new URL(location).searchParams;
     this.tagname = params.get("tagname");
     this.fetchPostList();
+
+    // EventHook 등록
+    EventBus.$on("me_change", (val) => {
+      this.me = val;
+    });
   },
 
   methods: {
@@ -185,10 +198,14 @@ export default {
 
     dialogOpen(actionKind, item) {
       console.log("dialogOpen()...", actionKind);
+      if (this.me.username === "Anonymous") {
+        alert("Please login first !");
+        return;
+      }
       this.actionKind = actionKind;
       if (actionKind === "create") {
         this.editedIndex = -1;
-        this.editedItem = "";
+        this.editedItem = {};
       } else {
         this.editedIndex = this.posts.indexOf(item);
         this.editedItem = Object.assign({}, item); // shallow copy(merge) / deep copy
@@ -203,9 +220,61 @@ export default {
 
     save() {
       console.log("save()...");
+      if (this.actionKind === "create") this.createPost();
+      else this.updatePost();
       this.dialog = false;
     },
 
+    createPost() {
+      console.log("createPost()...");
+      const postData = new FormData(document.getElementById("post-form"));
+      axios
+        .post("/api/post/create/", postData)
+        .then((res) => {
+          console.log("CREATE POST POST RES", res);
+          this.posts.push(res.data);
+        })
+        .catch((err) => {
+          console.log("CREATE POST POST ERR.RESPONSE", err.response);
+          alert(err.response.status + " " + err.response.statusText);
+        });
+    },
+
+    updatePost() {
+      console.log("updatePost()...");
+      const postData = new FormData(document.getElementById("post-form"));
+      postData.set("owner", this.me.id);
+      axios
+        .post(`/api/post/${this.editedItem.id}/update/`, postData)
+        .then((res) => {
+          console.log("UPDATE POST GET RES", res);
+          this.posts.splice(this.editedIndex, 1, res.data);
+        })
+        .catch((err) => {
+          console.log("UPDATE POST GET ERR.RESPONSE", err.response);
+          alert(err.response.status + " " + err.response.statusText);
+        });
+    },
+
+    deletePost(item) {
+      console.log("deletePost()...", item);
+      if (this.me.username === "Anonymous") {
+        alert("Please login first !");
+        return;
+      }
+      if (!confirm("Are you sure to delete ?")) return;
+      axios
+        .delete(`/api/post/${item.id}/delete`)
+        .then((res) => {
+          console.log("DELETE POST DELETE RES", res);
+          const index = this.posts.indexOf(item);
+          this.posts.splice(index, 1);
+        })
+        .catch((err) => {
+          console.log("DELETE POST DELETE ERR.RESPONSE", err.response);
+          alert(err.response.status + " " + err.response.statusText);
+        });
+    },
     // editItem(item) {
     //   this.editedIndex = this.posts.indexOf(item);
     //   this.editedItem = Object.assign({}, item);

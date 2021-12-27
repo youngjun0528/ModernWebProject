@@ -31,10 +31,11 @@
       <v-btn text href="/">Home</v-btn>
       <v-btn text href="/blog/post/list">Blog</v-btn>
       <v-btn text href="/admin">Admin</v-btn>
+      <!--       
       <v-btn text>/</v-btn>
       <v-btn text href="/post_list.html">PostList</v-btn>
       <v-btn text href="/post_detail.html">PostDetail</v-btn>
-
+ -->
       <v-menu offset-y left bottom>
         <template v-slot:activator="{ on, attrs }">
           <v-btn text v-bind="attrs" v-on="on">
@@ -182,11 +183,14 @@
 
 <script>
 import axios from "axios";
+import EventBus from "./event_bus";
 
 axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
 axios.defaults.xsrfCookieName = "csrftoken";
 
 export default {
+  name: "MainMenu",
+
   data: () => ({
     drawer: null,
     dialog: {
@@ -196,6 +200,14 @@ export default {
     },
     me: { username: "Anonymous" },
   }),
+
+  watch: {
+    // me 변수가 변경될 때 마다 호출
+    me(newVal, oldVal) {
+      console.log("watch.me()...", newVal, oldVal);
+      EventBus.$emit("me_change", newVal);
+    },
+  },
 
   created() {
     this.getUserInfo();
