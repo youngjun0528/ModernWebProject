@@ -85,6 +85,11 @@ export default {
     // https://v3.ko.vuejs.org/guide/conditional.html#v-if-%E1%84%83%E1%85%A2-v-show
     // const postId = location.pathname.split("/")[3] || 1;
     const postId = location.pathname.split("/")[3];
+
+    // front-end only
+    // const params = new URL(location).searchParams;
+    // const postId = params.get('id');
+
     this.fetchPostDetail(postId);
     this.fetchTagCloud();
   },
@@ -125,6 +130,9 @@ export default {
     serverPage(tagName) {
       console.log("tagName()...", tagName);
       location.href = `/blog/post/list/?tagname=${tagName}`;
+
+      // front-end only
+      // location.href = `/post_list.html?tagname=${tagName}`;
     },
   },
 };

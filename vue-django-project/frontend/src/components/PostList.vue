@@ -194,6 +194,8 @@ export default {
     serverPage(item) {
       console.log("serverPage()...", item);
       location.href = `/blog/post/${item.id}`;
+      // front-end only
+      // location.href = `/post_detail.html?id=${item.id}`;
     },
 
     dialogOpen(actionKind, item) {

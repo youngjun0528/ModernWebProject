@@ -31,11 +31,16 @@
       <v-btn text href="/">Home</v-btn>
       <v-btn text href="/blog/post/list">Blog</v-btn>
       <v-btn text href="/admin">Admin</v-btn>
-      <!--       
-      <v-btn text>/</v-btn>
+
+      <!-- front-end only
+      <v-btn text href="/">Home</v-btn>
+      <v-btn text href="/post_list.html">Blog</v-btn>
+      <v-btn text href="/admin/">Admin</v-btn> -->
+
+      <!-- <v-btn text>/</v-btn>
       <v-btn text href="/post_list.html">PostList</v-btn>
-      <v-btn text href="/post_detail.html">PostDetail</v-btn>
- -->
+      <v-btn text href="/post_detail.html">PostDetail</v-btn> -->
+
       <v-menu offset-y left bottom>
         <template v-slot:activator="{ on, attrs }">
           <v-btn text v-bind="attrs" v-on="on">
